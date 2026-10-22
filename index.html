@@ -1,0 +1,2083 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OmniCleaner · Mac 通用智能文件去重工具</title>
+  <style>
+    :root {
+      --bg: #f5f6f8;
+      --card-bg: #ffffff;
+      --text: #1d1d1f;
+      --subtext: #86868b;
+      --border: #e5e5ea;
+      --border-hover: #d2d2d7;
+      --accent: #0071e3;
+      --accent-hover: #0077ed;
+      --accent-bg: #eef5fc;
+      --green: #34c759;
+      --green-bg: #eaf8ee;
+      --orange: #ff9500;
+      --orange-bg: #fff6e8;
+      --red: #ff3b30;
+      --red-bg: #ffefee;
+      --radius: 12px;
+      --radius-sm: 8px;
+      --shadow: 0 2px 8px rgba(0,0,0,0.04);
+      --shadow-lg: 0 8px 24px rgba(0,0,0,0.08);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+      padding-bottom: 120px;
+    }
+
+    header {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      border-bottom: 1px solid var(--border);
+      padding: 14px 32px;
+    }
+
+    .header-inner {
+      max-width: 1320px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .brand-icon {
+      width: 32px;
+      height: 32px;
+      background: linear-gradient(135deg, #0071e3, #5ac8fa);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-size: 18px;
+      box-shadow: 0 2px 6px rgba(0,113,227,0.3);
+    }
+
+    .brand h1 {
+      font-size: 18px;
+      font-weight: 700;
+      letter-spacing: -0.3px;
+    }
+
+    .brand .version-badge {
+      font-size: 11px;
+      font-weight: 600;
+      padding: 2px 8px;
+      background: var(--accent-bg);
+      color: var(--accent);
+      border-radius: 12px;
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .stats-chip {
+      background: #f0f2f5;
+      padding: 5px 12px;
+      border-radius: 16px;
+      font-size: 12.5px;
+      color: var(--subtext);
+    }
+    .stats-chip strong { color: var(--text); font-weight: 600; }
+
+    .container {
+      max-width: 1320px;
+      margin: 20px auto;
+      padding: 0 32px;
+    }
+
+    /* Setup Card */
+    .setup-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 22px 26px;
+      box-shadow: var(--shadow);
+      margin-bottom: 20px;
+    }
+
+    .dropzone {
+      border: 2px dashed #b0b8c4;
+      border-radius: var(--radius);
+      background: #fafbfc;
+      padding: 30px 20px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .dropzone.dragover {
+      border-color: var(--accent);
+      background: var(--accent-bg);
+      transform: scale(1.005);
+    }
+
+    .dropzone-icon {
+      font-size: 38px;
+      margin-bottom: 8px;
+    }
+
+    .dropzone-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 4px;
+    }
+
+    .dropzone-hint {
+      font-size: 12.5px;
+      color: var(--subtext);
+      margin-bottom: 14px;
+    }
+
+    .target-folders-panel {
+      margin-top: 18px;
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: var(--radius);
+      padding: 16px 20px;
+    }
+
+    .target-folders-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .target-folders-title {
+      font-size: 13.5px;
+      font-weight: 700;
+      color: #1e293b;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .target-folders-title .badge-count {
+      background: var(--accent);
+      color: #fff;
+      font-size: 11.5px;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 12px;
+      letter-spacing: 0.5px;
+    }
+
+    .folder-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .folder-pill {
+      background: linear-gradient(180deg, #f0f7ff 0%, #e2efff 100%);
+      border: 1.5px solid #99c8ff;
+      border-radius: 9px;
+      padding: 8px 14px;
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 13px;
+      font-weight: 600;
+      color: #0b3a75;
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      box-shadow: 0 1.5px 5px rgba(0, 102, 204, 0.12);
+      transition: all 0.2s ease;
+    }
+    .folder-pill:hover {
+      border-color: var(--accent);
+      box-shadow: 0 3px 10px rgba(0, 113, 227, 0.22);
+      transform: translateY(-1px);
+    }
+
+    .folder-pill .rm-btn {
+      color: #0b3a75;
+      background: rgba(0, 102, 204, 0.12);
+      cursor: pointer;
+      font-weight: bold;
+      border-radius: 50%;
+      width: 18px;
+      height: 18px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border: none;
+      font-size: 13px;
+      transition: all 0.15s ease;
+    }
+    .folder-pill .rm-btn:hover {
+      background: var(--red);
+      color: #fff;
+    }
+
+    .folder-empty-tip {
+      font-size: 13px;
+      color: #64748b;
+      padding: 10px 0;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .action-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 18px;
+      padding-top: 16px;
+      border-top: 1px solid var(--border);
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 8px 16px;
+      border-radius: var(--radius-sm);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      border: 1px solid var(--border);
+      background: var(--card-bg);
+      color: var(--text);
+      transition: all 0.15s ease;
+    }
+    .btn:hover { background: #f8f9fa; border-color: var(--border-hover); }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    .btn-primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+    .btn-primary:hover { background: var(--accent-hover); border-color: var(--accent-hover); }
+
+    .btn-danger { background: var(--red); color: #fff; border-color: var(--red); }
+    .btn-danger:hover { background: #e02d23; border-color: #e02d23; }
+
+    .btn-outline-undo {
+      background: #fff;
+      border: 1px solid var(--orange);
+      color: var(--orange);
+      font-weight: 600;
+    }
+    .btn-outline-undo:hover {
+      background: var(--orange-bg);
+    }
+
+    /* Progress bar */
+    .progress-box {
+      margin-top: 16px;
+      background: #f8f9fa;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px 16px;
+      display: none;
+    }
+    .progress-text {
+      font-size: 12.5px;
+      font-weight: 500;
+      margin-bottom: 8px;
+      display: flex;
+      justify-content: space-between;
+    }
+    .progress-track {
+      height: 7px;
+      background: #e5e5ea;
+      border-radius: 4px;
+      overflow: hidden;
+    }
+    .progress-bar {
+      height: 100%;
+      width: 0%;
+      background: var(--accent);
+      border-radius: 4px;
+      transition: width 0.25s ease;
+    }
+
+    /* Filter Pills */
+    .filter-pills {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+
+    .pill {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 5px 13px;
+      font-size: 12.5px;
+      color: var(--text);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.15s;
+    }
+    .pill:hover { border-color: var(--accent); }
+    .pill.active {
+      background: var(--accent-bg);
+      border-color: var(--accent);
+      color: var(--accent);
+      font-weight: 600;
+    }
+    .pill .num {
+      background: #f0f2f5;
+      padding: 1px 7px;
+      border-radius: 10px;
+      font-size: 11px;
+    }
+    .pill.active .num { background: #dbeaff; color: var(--accent); }
+
+    /* Toolbar */
+    .toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+
+    .toolbar-left, .toolbar-right {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .search-box-container {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .search-tag-wrapper {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 6px;
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 4px 10px;
+      min-width: 280px;
+      max-width: 540px;
+      cursor: text;
+      transition: all 0.2s ease;
+    }
+    .search-tag-wrapper:focus-within {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 2px rgba(0, 113, 227, 0.12);
+    }
+
+    .search-tags {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .search-tag-chip {
+      background: #eff6ff;
+      border: 1px solid #bfdbfe;
+      color: #1d4ed8;
+      font-size: 12px;
+      font-weight: 600;
+      padding: 2px 7px;
+      border-radius: 6px;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .search-tag-rm {
+      background: none;
+      border: none;
+      color: #2563eb;
+      font-weight: bold;
+      cursor: pointer;
+      font-size: 13px;
+      padding: 0;
+      line-height: 1;
+      border-radius: 50%;
+      width: 14px;
+      height: 14px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .search-tag-rm:hover {
+      background: rgba(37, 99, 235, 0.2);
+    }
+
+    .search-tag-input {
+      border: none;
+      outline: none;
+      font-size: 13px;
+      padding: 4px 2px;
+      background: transparent;
+      flex: 1;
+      min-width: 140px;
+      color: var(--text);
+    }
+
+    .search-clear-btn {
+      background: none;
+      border: none;
+      color: var(--subtext);
+      cursor: pointer;
+      font-size: 15px;
+      padding: 0 4px;
+      line-height: 1;
+    }
+    .search-clear-btn:hover { color: var(--text); }
+
+    .search-mode-select {
+      font-size: 12.5px;
+      padding: 7px 10px;
+      background: var(--card-bg);
+      font-weight: 500;
+    }
+
+    .search-hint-banner {
+      background: #eff6ff;
+      border: 1px solid #bfdbfe;
+      color: #1e40af;
+      padding: 9px 16px;
+      border-radius: var(--radius-sm);
+      margin-bottom: 14px;
+      font-size: 12.5px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .search-hint-banner .kw-badge {
+      background: #dbeafe;
+      color: #1e3a8a;
+      padding: 1px 6px;
+      border-radius: 4px;
+      font-weight: 600;
+      margin: 0 2px;
+    }
+
+    .search-input {
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 7px 12px;
+      font-size: 13px;
+      outline: none;
+      background: var(--card-bg);
+    }
+    .search-input:focus { border-color: var(--accent); }
+
+    /* Duplicate Group Cards */
+    .group-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      margin-bottom: 16px;
+      overflow: hidden;
+      box-shadow: var(--shadow);
+    }
+
+    .group-header {
+      background: #fbfcff;
+      border-bottom: 1px solid var(--border);
+      padding: 11px 18px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .group-info {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .group-badge-size {
+      font-weight: 700;
+      font-size: 13.5px;
+    }
+
+    .badge-waste {
+      background: var(--red-bg);
+      color: var(--red);
+      font-size: 11px;
+      font-weight: 600;
+      padding: 2px 7px;
+      border-radius: 6px;
+    }
+
+    .badge-copies {
+      background: var(--accent-bg);
+      color: var(--accent);
+      font-size: 11px;
+      font-weight: 600;
+      padding: 2px 7px;
+      border-radius: 6px;
+    }
+
+    .file-item {
+      padding: 11px 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid #f0f0f4;
+      gap: 14px;
+      cursor: pointer;
+      user-select: none;
+      transition: background-color 0.15s ease;
+    }
+    .file-item:last-child { border-bottom: none; }
+    .file-item:hover { background: #f4f8fe; }
+    .file-item.is-primary { background: #fbfdfa; }
+    .file-item.is-primary:hover { background: #f3f9f1; }
+    .file-item.is-selected { background: #fff4f4; }
+    .file-item.is-selected:hover { background: #fee8e8; }
+
+    .file-select-area {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex: 1;
+      min-width: 0;
+    }
+
+    .file-item input[type="checkbox"] {
+      width: 17px;
+      height: 17px;
+      accent-color: var(--red);
+      cursor: pointer;
+    }
+    .file-item input[type="checkbox"]:disabled {
+      cursor: not-allowed;
+      opacity: 0.35;
+    }
+
+    .file-details {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .file-name {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .primary-tag {
+      font-size: 11px;
+      font-weight: 600;
+      background: var(--green-bg);
+      color: var(--green);
+      padding: 1px 6px;
+      border-radius: 4px;
+      flex-shrink: 0;
+    }
+
+    .copy-marker-tag {
+      font-size: 11px;
+      background: var(--orange-bg);
+      color: var(--orange);
+      padding: 1px 6px;
+      border-radius: 4px;
+      flex-shrink: 0;
+    }
+
+    .file-path {
+      font-size: 11.5px;
+      color: var(--subtext);
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin-top: 2px;
+    }
+
+    .file-actions {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-shrink: 0;
+    }
+
+    .btn-link {
+      background: none;
+      border: 1px solid var(--border);
+      padding: 4px 9px;
+      font-size: 11.5px;
+      border-radius: 6px;
+      cursor: pointer;
+      color: var(--subtext);
+    }
+    .btn-link:hover { background: #f0f2f5; color: var(--text); }
+
+    /* Fixed Bottom Action Bar */
+    .bottom-bar {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-top: 1px solid var(--border);
+      padding: 12px 32px;
+      z-index: 1000;
+      box-shadow: 0 -4px 16px rgba(0,0,0,0.06);
+    }
+
+    .bottom-inner {
+      max-width: 1320px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    .bottom-summary strong { color: var(--red); font-size: 15px; }
+
+    #toast {
+      position: fixed;
+      left: 50%;
+      bottom: 84px;
+      transform: translateX(-50%) translateY(20px);
+      background: #1d1d1f;
+      color: #fff;
+      padding: 9px 22px;
+      border-radius: 30px;
+      font-size: 13px;
+      opacity: 0;
+      transition: 0.25s ease;
+      pointer-events: none;
+      z-index: 2000;
+    }
+    #toast.on { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+    .pagination {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 12px;
+      margin: 28px 0 60px;
+    }
+
+    /* Targeted Cleanup Modal */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.45);
+      backdrop-filter: blur(6px);
+      -webkit-backdrop-filter: blur(6px);
+      z-index: 3000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s ease;
+    }
+    .modal-overlay.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+    .modal-card {
+      background: #ffffff;
+      border-radius: 14px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.22);
+      width: 100%;
+      max-width: 580px;
+      overflow: hidden;
+      transform: scale(0.96);
+      transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .modal-overlay.active .modal-card {
+      transform: scale(1);
+    }
+    .modal-header {
+      padding: 16px 22px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: #fbfbfc;
+    }
+    .modal-title {
+      font-size: 15px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .modal-close-btn {
+      background: none;
+      border: none;
+      font-size: 20px;
+      color: var(--subtext);
+      cursor: pointer;
+      line-height: 1;
+      padding: 2px 6px;
+      border-radius: 6px;
+    }
+    .modal-close-btn:hover { background: #e5e5ea; color: var(--text); }
+    .modal-body {
+      padding: 22px;
+      max-height: 75vh;
+      overflow-y: auto;
+    }
+    .modal-field {
+      margin-bottom: 18px;
+    }
+    .modal-field label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 6px;
+      color: var(--text);
+    }
+    .modal-field .desc {
+      font-size: 12px;
+      color: var(--subtext);
+      margin-bottom: 8px;
+      line-height: 1.4;
+    }
+    .modal-input {
+      width: 100%;
+      box-sizing: border-box;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 9px 12px;
+      font-size: 13px;
+      background: #fdfdfd;
+      outline: none;
+      transition: border-color 0.15s ease;
+    }
+    .modal-input:focus {
+      border-color: var(--accent);
+      background: #ffffff;
+      box-shadow: 0 0 0 3px rgba(0, 113, 227, 0.1);
+    }
+    .quick-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 8px;
+    }
+    .quick-chip {
+      background: #f2f4f8;
+      border: 1px solid #e1e4ea;
+      color: #374151;
+      font-size: 11.5px;
+      padding: 3px 9px;
+      border-radius: 6px;
+      cursor: pointer;
+      max-width: 250px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      transition: all 0.15s;
+    }
+    .quick-chip:hover {
+      background: #e0e7ff;
+      border-color: #c7d2fe;
+      color: #3730a3;
+    }
+    .modal-footer {
+      padding: 14px 22px;
+      border-top: 1px solid var(--border);
+      background: #fbfbfc;
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 10px;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 70px 20px;
+      color: var(--subtext);
+    }
+    .empty-state-icon { font-size: 44px; margin-bottom: 10px; }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="header-inner">
+    <div class="brand">
+      <div class="brand-icon">✨</div>
+      <h1>OmniCleaner</h1>
+      <span class="version-badge">Mac 通用智能去重</span>
+    </div>
+    <div class="header-actions">
+      <div class="stats-chip">
+        重复组：<strong id="stat-groups">0</strong> ·
+        重复文件：<strong id="stat-files">0</strong> ·
+        可释放：<strong id="stat-waste" style="color:var(--red)">0 MB</strong>
+      </div>
+      <!-- Low-profile Undo Button on Header -->
+      <button class="btn btn-outline-undo" id="btn-header-undo" onclick="triggerRestoreLastBatch()" title="从废纸篓撤回上一批误删的文件">
+        ↩️ 撤回上一批删除
+      </button>
+      <button class="btn" onclick="refreshPageData()">🔄 刷新列表</button>
+    </div>
+  </div>
+</header>
+
+<div class="container">
+
+  <!-- 1. Drag & Drop Folder Setup Card -->
+  <div class="setup-card">
+    <input type="file" id="native-file-input" webkitdirectory directory multiple style="display:none" onchange="handleNativeFileSelect(this)">
+    
+    <div class="dropzone" id="drop-target">
+      <div class="dropzone-icon">📂</div>
+      <div class="dropzone-title">拖入任意文件夹到此处，或点击添加</div>
+      <div class="dropzone-hint">支持从访达直接拖入文件夹，或按住 Command / Shift 多选同时添加多个目录</div>
+      <div style="display:flex; justify-content:center; gap:10px;">
+        <button class="btn btn-primary" onclick="chooseNativeFolder()">
+          📁 原生访达选择 (支持多选)...
+        </button>
+        <button class="btn" onclick="document.getElementById('native-file-input').click()">
+          🗂️ 浏览器目录选择...
+        </button>
+      </div>
+    </div>
+
+    <!-- Quick Paste/Path Input -->
+    <div style="margin-top:12px; display:flex; gap:10px; align-items:center;">
+      <input type="text" id="manual-path-input" class="search-input" style="flex:1; width:auto;" 
+             placeholder="也可在此直接输入或粘贴路径（如 /Volumes/ExternalDisk/Photos 或 ~/Pictures），按回车添加..."
+             onkeydown="if(event.key==='Enter') addManualPath()">
+      <button class="btn" onclick="addManualPath()">添加路径</button>
+    </div>
+
+    <!-- Target Folder List -->
+    <div class="target-folders-panel" id="target-folders-container">
+      <div class="target-folders-header">
+        <div class="target-folders-title">
+          <span>📁 当前参与比对的目录</span>
+          <span class="badge-count" id="folder-count">0</span>
+        </div>
+        <div id="folder-actions" style="display:none;">
+          <button class="btn-link" style="color:var(--red); border-color:#fecaca;" onclick="clearAllFolders()">清空全部目录</button>
+        </div>
+      </div>
+      <div class="folder-list" id="folders-list"></div>
+    </div>
+
+    <div class="action-row">
+      <div style="display:flex; align-items:center; gap:8px;">
+        <span style="font-size:12px; color:var(--subtext)">🛡️ 安全机制：自动合并重叠子目录，保护 .photoslibrary、.git 与系统废纸篓</span>
+      </div>
+      <button class="btn btn-primary" style="padding:9px 22px; font-size:13.5px;" id="btn-start-scan" onclick="triggerScan()">
+        🚀 开始全量比对扫描
+      </button>
+    </div>
+
+    <!-- Progress Indicator -->
+    <div class="progress-box" id="scan-progress-box">
+      <div class="progress-text">
+        <span id="scan-status-msg">正在扫描...</span>
+        <span id="scan-percent-text">0%</span>
+      </div>
+      <div class="progress-track">
+        <div class="progress-bar" id="scan-progress-bar"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. Duplicate Clean Results View -->
+  <div id="results-section">
+    <!-- Filter Pills -->
+    <div class="filter-pills">
+      <span style="font-size:12px; color:var(--subtext); margin-right:4px">体积分档：</span>
+      <button class="pill active" id="pill-all" onclick="setSizeFilter('all')">
+        全部重复组 <span class="num" id="pill-all-num">0</span>
+      </button>
+      <button class="pill" id="pill-large" onclick="setSizeFilter('large')">
+        🎬 大文件/长视频 (≥10MB) <span class="num" id="pill-large-num">0</span>
+      </button>
+      <button class="pill" id="pill-medium" onclick="setSizeFilter('medium')">
+        🖼️ 中等照片 (1MB~10MB) <span class="num" id="pill-medium-num">0</span>
+      </button>
+      <button class="pill" id="pill-small" onclick="setSizeFilter('small')">
+        📸 普通照片/缩略图 (&lt;1MB) <span class="num" id="pill-small-num">0</span>
+      </button>
+    </div>
+
+    <!-- Toolbar -->
+    <div class="toolbar">
+      <div class="toolbar-left">
+        <button class="btn" onclick="smartSelectCurrentPage()">🪄 仅勾选当前页 (最多50组)</button>
+        <button class="btn" onclick="smartSelectAllPages()">🌐 全局勾选所有页面</button>
+        <button class="btn btn-primary" style="background:#2563eb; color:#fff;" onclick="openTargetedCleanupModal()">🎯 定向批量标记清理...</button>
+        <button class="btn" onclick="clearAllSelections()">❌ 取消所有勾选</button>
+        <select class="btn" id="sort-select" onchange="applyFilters()">
+          <option value="size_desc">按体积：从大到小</option>
+          <option value="size_asc">按体积：从小到大</option>
+          <option value="copies_desc">按重复份数：从多到少</option>
+        </select>
+      </div>
+      <div class="toolbar-right">
+        <div class="search-box-container">
+          <div class="search-tag-wrapper" id="search-tag-wrapper" onclick="focusSearchInput()">
+            <div id="search-tags" class="search-tags"></div>
+            <input type="text" id="search-input" class="search-tag-input" 
+                   placeholder="输入关键词，按回车或逗号加词(2~5个)..." 
+                   onkeydown="handleSearchKeydown(event)"
+                   oninput="handleSearchInput()">
+            <button class="search-clear-btn" id="search-clear-btn" style="display:none;" onclick="clearAllSearchKeywords(event)" title="清空搜索词">×</button>
+          </div>
+          <select class="btn search-mode-select" id="search-mode-select" onchange="applyFilters()" title="多词筛选模式">
+            <option value="or" selected>🔍 任意匹配 (包含任一词) [默认]</option>
+            <option value="and">🔗 同时包含 (重叠交集)</option>
+          </select>
+          <button class="btn" id="btn-show-all" onclick="toggleShowAll()">平铺全部</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Active Search Filter Hint Banner -->
+    <div id="search-hint-container"></div>
+
+    <!-- Groups Container (Using Event Delegation) -->
+    <div id="groups-container"></div>
+
+    <!-- Pagination -->
+    <div class="pagination" id="pagination-controls">
+      <button class="btn" onclick="prevPage()">上一页</button>
+      <span id="page-indicator" style="font-size:12.5px; font-weight:500;">第 1 / 1 页</span>
+      <button class="btn" onclick="nextPage()">下一页</button>
+    </div>
+  </div>
+
+</div>
+
+<!-- Fixed Bottom Action Bar -->
+<div class="bottom-bar">
+  <div class="bottom-inner">
+    <div class="bottom-summary">
+      已勾选待清理：<strong id="bar-selected-count">0</strong> 个冗余副本
+      <span style="margin: 0 10px; color:var(--border)">|</span>
+      预计释放磁盘空间：<strong id="bar-selected-waste">0 MB</strong>
+    </div>
+    <div style="display:flex; gap:10px;">
+      <button class="btn btn-danger" style="padding:9px 22px; font-size:13.5px;" onclick="executeBatchTrash()">
+        🗑️ 移入 macOS 废纸篓 (安全可撤回)
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Targeted Cleanup Modal Dialog -->
+<div class="modal-overlay" id="targeted-cleanup-modal" onclick="handleModalOverlayClick(event)">
+  <div class="modal-card">
+    <div class="modal-header">
+      <div class="modal-title">
+        <span>🎯</span>
+        <span>定向批量标记清理 (目录优先偏好)</span>
+      </div>
+      <button class="modal-close-btn" onclick="closeTargetedCleanupModal()">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="modal-field">
+        <label for="target-clean-input">1. 优先清理此目录/包含词下的副本 (必填)：</label>
+        <div class="desc">只要该文件在此目录/关键词下，且同一组别处存在有效原件，系统将批量打勾准备删除。</div>
+        <input type="text" id="target-clean-input" class="modal-input" placeholder="例如：Soundtrack 电影原声带 或 雕刻时光">
+        <div style="font-size:11.5px; color:var(--subtext); margin-top:6px;">常见高频目录推荐（点击直接填入）：</div>
+        <div class="quick-chips" id="quick-clean-chips"></div>
+      </div>
+
+      <div class="modal-field">
+        <label for="target-keep-input">2. 优先保留哪个目录作为原件 (选填，留空则按默认原件规则)：</label>
+        <div class="desc">如果填写，系统会强制优先确保保留该目录下的文件，永不被选。例如：<code>Music Album 专辑</code></div>
+        <input type="text" id="target-keep-input" class="modal-input" placeholder="例如：Music Album 专辑 或 0独立副本">
+        <div class="quick-chips" id="quick-keep-chips"></div>
+      </div>
+
+      <div class="modal-field">
+        <label>3. 标记范围：</label>
+        <div style="display:flex; gap:16px; margin-top:6px; font-size:13px;">
+          <label style="display:flex; align-items:center; gap:6px; cursor:pointer; font-weight:normal;">
+            <input type="radio" name="target-scope" value="page" checked style="accent-color:#2563eb;">
+            <strong>仅勾选当前页 (最多50组)</strong> [推荐，便于核对]
+          </label>
+          <label style="display:flex; align-items:center; gap:6px; cursor:pointer; font-weight:normal;">
+            <input type="radio" name="target-scope" value="all" style="accent-color:#2563eb;">
+            <span>跨所有页面全局标记</span>
+          </label>
+        </div>
+      </div>
+
+      <div style="background:#eff6ff; border:1px solid #bfdbfe; border-radius:8px; padding:10px 14px; font-size:12px; color:#1e40af; line-height:1.5;">
+        🛡️ <strong>零数据丢失安全底线承诺</strong>：即使某个组内的所有副本都在清理目录下，系统也绝不会全部删除，一定会为您自动锁死并保留至少一份合法原件！
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeTargetedCleanupModal()">取消</button>
+      <button class="btn btn-primary" style="background:#2563eb; color:#fff; font-weight:600;" onclick="executeTargetedMarking()">
+        ⚡ 立即批量标记勾选
+      </button>
+    </div>
+  </div>
+</div>
+
+<div id="toast">已完成</div>
+
+<script>
+let sessionToken = '';
+let targetFolders = [];
+let excludeFolders = [];
+
+let rawData = null;
+let allGroups = [];
+let filteredGroups = [];
+let selectedPaths = new Set();
+
+const PAGE_SIZE = 50;
+let currentPage = 1;
+let showAll = false;
+let currentSizeFilter = 'all';
+
+// Fetch Session Token for CSRF Defense
+async function initSession() {
+  try {
+    const res = await fetch('/api/session');
+    const json = await res.json();
+    sessionToken = json.token || '';
+  } catch (e) {}
+}
+
+// Universal API Fetch with Auto-Renewing Session Token on 403
+async function apiFetch(url, options = {}) {
+  options.headers = options.headers || {};
+  if (!options.headers['X-Session-Token']) {
+    options.headers['X-Session-Token'] = sessionToken;
+  }
+  let res = await fetch(url, options);
+  if (res.status === 403) {
+    // If backend was restarted and token changed, re-fetch and retry automatically!
+    await initSession();
+    options.headers['X-Session-Token'] = sessionToken;
+    res = await fetch(url, options);
+  }
+  return res;
+}
+
+// Setup Drag & Drop
+const dropZone = document.getElementById('drop-target');
+
+['dragenter', 'dragover'].forEach(eventName => {
+  dropZone.addEventListener(eventName, (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    dropZone.classList.add('dragover');
+  }, false);
+});
+
+['dragleave', 'drop'].forEach(eventName => {
+  dropZone.addEventListener(eventName, (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    dropZone.classList.remove('dragover');
+  }, false);
+});
+
+dropZone.addEventListener('drop', async (e) => {
+  e.preventDefault();
+  e.stopPropagation();
+  dropZone.classList.remove('dragover');
+
+  const queries = [];
+
+  // 1. Text / URI list
+  const textData = e.dataTransfer.getData('text/plain') || e.dataTransfer.getData('text/uri-list');
+  if (textData) {
+    const lines = textData.split('\n');
+    for (const l of lines) {
+      let clean = l.trim();
+      if (clean.startsWith('file://')) {
+        clean = decodeURIComponent(clean.replace('file://', ''));
+      }
+      if (clean) queries.push(clean);
+    }
+  }
+
+  // 2. DataTransfer items / files
+  if (e.dataTransfer.items && e.dataTransfer.items.length > 0) {
+    for (let i = 0; i < e.dataTransfer.items.length; i++) {
+      const item = e.dataTransfer.items[i];
+      const entry = item.webkitGetAsEntry ? item.webkitGetAsEntry() : null;
+      const file = item.getAsFile ? item.getAsFile() : null;
+      if (file && file.path) {
+        queries.push(file.path);
+      } else if (entry) {
+        queries.push(entry.name);
+      } else if (file) {
+        queries.push(file.name);
+      }
+    }
+  } else if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+    for (let i = 0; i < e.dataTransfer.files.length; i++) {
+      const f = e.dataTransfer.files[i];
+      if (f.path) queries.push(f.path);
+      else queries.push(f.name);
+    }
+  }
+
+  await resolveAndAddPaths(queries);
+});
+
+async function resolveAndAddPaths(queries) {
+  try {
+    showToast('正在解析添加文件夹...');
+    const res = await apiFetch('/api/resolve-path', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ 
+        queries: queries, 
+        query: (queries && queries.length === 1) ? queries[0] : '' 
+      })
+    });
+    const json = await res.json();
+    if (json.status === 'ok') {
+      const paths = json.paths || (json.path ? [json.path] : []);
+      if (paths.length > 0) {
+        addFolders(paths);
+      }
+    } else {
+      const directs = (queries || []).filter(q => q && q.startsWith('/'));
+      if (directs.length > 0) {
+        addFolders(directs);
+      } else {
+        alert('未能识别拖入的文件夹路径: ' + (json.message || ''));
+      }
+    }
+  } catch (e) {
+    const directs = (queries || []).filter(q => q && q.startsWith('/'));
+    if (directs.length > 0) {
+      addFolders(directs);
+    } else {
+      alert('解析文件夹失败: ' + e.message);
+    }
+  }
+}
+
+async function addManualPath() {
+  const inp = document.getElementById('manual-path-input');
+  const val = inp.value.trim();
+  if (!val) return;
+  await resolveAndAddPaths([val]);
+  inp.value = '';
+}
+
+function handleNativeFileSelect(input) {
+  if (input.files && input.files.length > 0) {
+    const paths = new Set();
+    for (let i = 0; i < input.files.length; i++) {
+      const f = input.files[i];
+      if (f.path) {
+        const p = f.path;
+        const rel = f.webkitRelativePath;
+        if (rel) {
+          const rootDirName = rel.split('/')[0];
+          const idx = p.indexOf('/' + rootDirName + '/');
+          if (idx !== -1) {
+            paths.add(p.slice(0, idx + rootDirName.length + 1));
+            continue;
+          }
+        }
+        paths.add(p.substring(0, p.lastIndexOf('/')));
+      }
+    }
+    if (paths.size > 0) {
+      addFolders(Array.from(paths));
+    }
+  }
+}
+
+async function chooseNativeFolder() {
+  try {
+    showToast('正在打开 Mac 访达选择框 (可按住 Cmd 多选)...');
+    const res = await apiFetch('/api/select-folder-dialog', { 
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' }
+    });
+    const json = await res.json();
+    if (json.status === 'ok' && json.paths && json.paths.length > 0) {
+      addFolders(json.paths);
+    }
+  } catch (e) {
+    alert('打开选择框失败: ' + e.message);
+  }
+}
+
+function addFolders(paths) {
+  let addedCount = 0;
+  paths.forEach(p => {
+    if (p && !targetFolders.includes(p)) {
+      targetFolders.push(p);
+      addedCount++;
+    }
+  });
+  if (addedCount > 0) {
+    renderFolderList();
+    saveConfigToServer();
+    showToast(`🎉 成功添加 ${addedCount} 个参与比对的文件夹！`);
+  }
+}
+
+function addFolder(path) {
+  addFolders([path]);
+}
+
+function removeFolder(idx) {
+  targetFolders.splice(idx, 1);
+  renderFolderList();
+  saveConfigToServer();
+}
+
+function clearAllFolders() {
+  if (targetFolders.length === 0) return;
+  if (confirm(`确定清空当前已添加的 ${targetFolders.length} 个比对目录吗？`)) {
+    targetFolders = [];
+    renderFolderList();
+    saveConfigToServer();
+    showToast('已清空全部比对目录');
+  }
+}
+
+function renderFolderList() {
+  const container = document.getElementById('folders-list');
+  const countEl = document.getElementById('folder-count');
+  const actionsEl = document.getElementById('folder-actions');
+  
+  if (countEl) countEl.textContent = targetFolders.length;
+  if (actionsEl) {
+    actionsEl.style.display = targetFolders.length > 0 ? 'block' : 'none';
+  }
+  
+  if (targetFolders.length === 0) {
+    container.innerHTML = '<div class="folder-empty-tip">📁 暂未添加目录。请将需要去重的文件夹拖入上方虚线框，或点击上方按钮选择。</div>';
+    return;
+  }
+  container.innerHTML = targetFolders.map((p, idx) => `
+    <div class="folder-pill" title="${escapeHtml(p)}">
+      <span class="folder-icon">📁</span>
+      <span style="max-width: 420px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${escapeHtml(p)}</span>
+      <button class="rm-btn" onclick="removeFolder(${idx})" title="移除此目录">×</button>
+    </div>
+  `).join('');
+}
+
+async function saveConfigToServer() {
+  try {
+    await apiFetch('/api/config', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ target_folders: targetFolders, exclude_folders: excludeFolders })
+    });
+  } catch (e) {}
+}
+
+async function triggerScan() {
+  if (targetFolders.length === 0) {
+    alert('请先拖入或添加至少一个文件夹！');
+    return;
+  }
+
+  const pBox = document.getElementById('scan-progress-box');
+  const pBar = document.getElementById('scan-progress-bar');
+  const pMsg = document.getElementById('scan-status-msg');
+  const pTxt = document.getElementById('scan-percent-text');
+  const btn = document.getElementById('btn-start-scan');
+
+  pBox.style.display = 'block';
+  btn.disabled = true;
+
+  try {
+    const res = await apiFetch('/api/start-scan', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ target_folders: targetFolders, exclude_folders: excludeFolders })
+    });
+    const json = await res.json();
+    if (json.status !== 'ok') {
+      alert(json.message);
+      btn.disabled = false;
+      return;
+    }
+
+    const pollTimer = setInterval(async () => {
+      try {
+        const sRes = await fetch('/api/status');
+        const sJson = await sRes.json();
+        pBar.style.width = sJson.percent + '%';
+        pTxt.textContent = sJson.percent + '%';
+        pMsg.textContent = sJson.progress_message;
+
+        if (sJson.status === 'done') {
+          clearInterval(pollTimer);
+          btn.disabled = false;
+          showToast('🎉 扫描完毕！');
+          await loadScanData();
+        } else if (sJson.status === 'error') {
+          clearInterval(pollTimer);
+          btn.disabled = false;
+          alert('扫描出错: ' + sJson.error);
+        }
+      } catch (err) {}
+    }, 600);
+
+  } catch (e) {
+    alert('请求失败: ' + e.message);
+    btn.disabled = false;
+  }
+}
+
+async function loadScanData() {
+  try {
+    const res = await fetch('/api/data?t=' + Date.now());
+    rawData = await res.json();
+    allGroups = rawData.scattered_groups || [];
+    
+    // Prune selections not in new data
+    const validSet = new Set();
+    allGroups.forEach(g => g.files.forEach(f => validSet.add(f.path)));
+    for (const p of Array.from(selectedPaths)) {
+      if (!validSet.has(p)) selectedPaths.delete(p);
+    }
+    
+    const summ = rawData.summary;
+    if (summ) {
+      document.getElementById('stat-groups').textContent = summ.total_duplicate_file_groups || 0;
+      document.getElementById('stat-files').textContent = summ.total_duplicate_files || 0;
+      document.getElementById('stat-waste').textContent = summ.wasted_space_formatted || '0 B';
+
+      document.getElementById('pill-all-num').textContent = summ.total_duplicate_file_groups || 0;
+      document.getElementById('pill-large-num').textContent = summ.count_large || 0;
+      document.getElementById('pill-medium-num').textContent = summ.count_medium || 0;
+      document.getElementById('pill-small-num').textContent = summ.count_small || 0;
+    }
+    
+    applyFilters();
+  } catch (e) {
+    document.getElementById('groups-container').innerHTML = `<div class="empty-state">加载数据失败: ${e.message}</div>`;
+  }
+}
+
+let searchKeywords = []; // array of strings, max 5
+
+function getActiveKeywords() {
+  const currentInputText = document.getElementById('search-input') ? document.getElementById('search-input').value.trim().toLowerCase() : '';
+  const kw = [...searchKeywords];
+  if (currentInputText) {
+    // 允许包含空格！仅按逗号、分号或换行分割
+    const parts = currentInputText.split(/[,，;；\n]+/).map(s => s.trim()).filter(Boolean);
+    parts.forEach(p => {
+      if (!kw.includes(p)) kw.push(p);
+    });
+  }
+  return kw;
+}
+
+function handleSearchKeydown(e) {
+  const inp = document.getElementById('search-input');
+  // 仅在按回车、逗号、分号时生成标签，完全保留空格
+  if (e.key === 'Enter' || e.key === ',' || e.key === '，' || e.key === ';' || e.key === '；') {
+    e.preventDefault();
+    const val = inp.value.trim().toLowerCase();
+    if (val) {
+      const parts = val.split(/[,，;；\n]+/).map(p => p.trim()).filter(Boolean);
+      parts.forEach(p => addSearchKeyword(p));
+      inp.value = '';
+    }
+  } else if (e.key === 'Backspace' && inp.value === '' && searchKeywords.length > 0) {
+    removeSearchKeyword(searchKeywords.length - 1);
+  }
+}
+
+function handleSearchInput() {
+  const inp = document.getElementById('search-input');
+  const val = inp.value;
+  // 如果粘贴了一整段含逗号/分号/换行的内容，自动切割成词，但保留内部空格
+  if (val.includes(',') || val.includes('，') || val.includes(';') || val.includes('；') || val.includes('\n')) {
+    const parts = val.split(/[,，;；\n]+/).map(p => p.trim().toLowerCase()).filter(Boolean);
+    if (parts.length > 1) {
+      parts.forEach(p => addSearchKeyword(p));
+      inp.value = '';
+      return;
+    }
+  }
+  updateClearBtnVisibility();
+  applyFilters();
+}
+
+function addSearchKeyword(val) {
+  if (!val) return;
+  if (searchKeywords.length >= 5) {
+    showToast('最多支持添加 5 个关键词');
+    return;
+  }
+  if (!searchKeywords.includes(val)) {
+    searchKeywords.push(val);
+    renderSearchTags();
+    applyFilters();
+  }
+}
+
+function removeSearchKeyword(idx) {
+  searchKeywords.splice(idx, 1);
+  renderSearchTags();
+  applyFilters();
+}
+
+function clearAllSearchKeywords(e) {
+  if (e) e.stopPropagation();
+  searchKeywords = [];
+  const inp = document.getElementById('search-input');
+  if (inp) inp.value = '';
+  renderSearchTags();
+  applyFilters();
+}
+
+function renderSearchTags() {
+  const container = document.getElementById('search-tags');
+  if (!container) return;
+  container.innerHTML = searchKeywords.map((k, idx) => `
+    <span class="search-tag-chip">
+      <span>${escapeHtml(k)}</span>
+      <button class="search-tag-rm" onclick="removeSearchKeyword(${idx})" title="移除此词">×</button>
+    </span>
+  `).join('');
+  
+  const inp = document.getElementById('search-input');
+  if (inp) {
+    if (searchKeywords.length >= 5) {
+      inp.placeholder = '已达5个上限';
+      inp.disabled = true;
+    } else {
+      inp.disabled = false;
+      inp.placeholder = searchKeywords.length === 0 ? '输入关键词，按回车或逗号加词...' : '+加词...';
+    }
+  }
+  updateClearBtnVisibility();
+}
+
+function updateClearBtnVisibility() {
+  const btn = document.getElementById('search-clear-btn');
+  const inpVal = document.getElementById('search-input') ? document.getElementById('search-input').value.trim() : '';
+  if (btn) {
+    btn.style.display = (searchKeywords.length > 0 || inpVal.length > 0) ? 'block' : 'none';
+  }
+}
+
+function focusSearchInput() {
+  const inp = document.getElementById('search-input');
+  if (inp && !inp.disabled) inp.focus();
+}
+
+function updateSearchHint(keywords, searchMode) {
+  const hintEl = document.getElementById('search-hint-container');
+  if (!hintEl) return;
+  if (keywords.length <= 1) {
+    hintEl.innerHTML = '';
+    return;
+  }
+  const badgesHtml = keywords.map(k => `<span class="kw-badge">${escapeHtml(k)}</span>`).join(searchMode === 'and' ? ' ➕ ' : ' ｜ ');
+  const modeText = searchMode === 'and' 
+    ? `🔗 <strong>交集筛选中</strong>：组内必须同时跨越包含所有关键词 ${badgesHtml} (共找到 <strong>${filteredGroups.length}</strong> 组交叉重叠)`
+    : `🔍 <strong>任意匹配中</strong>：组内只要包含任一关键词 ${badgesHtml} 即可 (共找到 <strong>${filteredGroups.length}</strong> 组)`;
+
+  hintEl.innerHTML = `
+    <div class="search-hint-banner">
+      <div>${modeText}</div>
+      <button class="btn-link" style="color:#2563eb; font-weight:600;" onclick="clearAllSearchKeywords(event)">清除筛选</button>
+    </div>
+  `;
+}
+
+function applyFilters() {
+  const keywords = getActiveKeywords();
+  const searchModeEl = document.getElementById('search-mode-select');
+  const searchMode = searchModeEl ? searchModeEl.value : 'or';
+  const sortModeEl = document.getElementById('sort-select');
+  const sortMode = sortModeEl ? sortModeEl.value : 'size_desc';
+
+  filteredGroups = allGroups.filter(g => {
+    if (currentSizeFilter === 'large' && g.size_bytes < 10 * 1024 * 1024) return false;
+    if (currentSizeFilter === 'medium' && (g.size_bytes < 1024 * 1024 || g.size_bytes >= 10 * 1024 * 1024)) return false;
+    if (currentSizeFilter === 'small' && g.size_bytes >= 1024 * 1024) return false;
+
+    if (keywords.length > 0) {
+      if (searchMode === 'and') {
+        // AND mode (Overlap Intersection): The duplicate group MUST contain files matching ALL keywords!
+        const allMatched = keywords.every(k => 
+          g.files.some(f => f.name.toLowerCase().includes(k) || f.path.toLowerCase().includes(k))
+        );
+        if (!allMatched) return false;
+      } else {
+        // OR mode: Group matches ANY keyword
+        const anyMatched = keywords.some(k => 
+          g.files.some(f => f.name.toLowerCase().includes(k) || f.path.toLowerCase().includes(k))
+        );
+        if (!anyMatched) return false;
+      }
+    }
+    return true;
+  });
+
+  if (sortMode === 'size_desc') filteredGroups.sort((a,b) => b.size_bytes - a.size_bytes);
+  else if (sortMode === 'size_asc') filteredGroups.sort((a,b) => a.size_bytes - b.size_bytes);
+  else if (sortMode === 'copies_desc') filteredGroups.sort((a,b) => b.copy_count - a.copy_count);
+
+  currentPage = 1;
+  renderPage();
+  updateBottomBar();
+  updateSearchHint(keywords, searchMode);
+}
+
+function setSizeFilter(type) {
+  currentSizeFilter = type;
+  document.querySelectorAll('.pill').forEach(p => p.classList.remove('active'));
+  const targetPill = document.getElementById(`pill-${type}`);
+  if (targetPill) targetPill.classList.add('active');
+  applyFilters();
+}
+
+function renderPage() {
+  const container = document.getElementById('groups-container');
+  if (filteredGroups.length === 0) {
+    container.innerHTML = `
+      <div class="empty-state">
+        <div class="empty-state-icon">🎉</div>
+        <div style="font-size:15px; font-weight:600; color:var(--text); margin-bottom:4px;">未发现重复文件</div>
+        <div>当前选择的目录下没有任何重复项，或已全部清理完毕。</div>
+      </div>
+    `;
+    document.getElementById('pagination-controls').style.display = 'none';
+    return;
+  }
+
+  const totalPages = Math.ceil(filteredGroups.length / PAGE_SIZE);
+  document.getElementById('pagination-controls').style.display = showAll ? 'none' : 'flex';
+  document.getElementById('page-indicator').textContent = `第 ${currentPage} / ${totalPages} 页 (共 ${filteredGroups.length} 组)`;
+
+  const start = (currentPage - 1) * PAGE_SIZE;
+  const pageItems = showAll ? filteredGroups : filteredGroups.slice(start, start + PAGE_SIZE);
+
+  container.innerHTML = pageItems.map((g, gIdx) => {
+    // Check how many unselected copies exist in group
+    const unselectedCount = g.files.filter(f => !selectedPaths.has(f.path)).length;
+
+    return `
+      <div class="group-card">
+        <div class="group-header">
+          <div class="group-info">
+            <span class="group-badge-size">${g.size_formatted}</span>
+            <span class="badge-copies">${g.copy_count} 份副本</span>
+            <span class="badge-waste">多余占用: ${g.wasted_formatted}</span>
+          </div>
+          <div>
+            <span style="font-size:11.5px; color:var(--subtext)">哈希指纹: ${g.group_id.slice(-8)}</span>
+          </div>
+        </div>
+        <div class="group-files">
+          ${g.files.map((f, fIdx) => {
+            const isPrimary = (fIdx === 0);
+            const isChecked = selectedPaths.has(f.path);
+            // ZERO DATA LOSS HARD LOCK:
+            // If this file is unselected, but it is the LAST remaining unselected file in the group,
+            // disable it to strictly prevent deleting ALL copies!
+            const isDisabled = (!isChecked && unselectedCount <= 1);
+
+            return `
+              <div class="file-item ${isPrimary ? 'is-primary' : ''} ${isChecked ? 'is-selected' : ''}">
+                <div class="file-select-area">
+                  <input type="checkbox" 
+                    data-path="${encodeURIComponent(f.path)}"
+                    ${isChecked ? 'checked' : ''} 
+                    ${isDisabled ? 'disabled title="安全硬锁定：每组必须保留至少 1 份原件，不可全部删除"' : ''}>
+                  <div class="file-details">
+                    <div class="file-name">
+                      ${escapeHtml(f.name)}
+                      ${isPrimary ? '<span class="primary-tag">⭐ 建议保留原件</span>' : ''}
+                      ${f.is_copy_marker ? '<span class="copy-marker-tag">标记副本</span>' : ''}
+                    </div>
+                    <div class="file-path" title="${escapeHtml(f.path)}">
+                      ${escapeHtml(f.path)} · <span style="color:var(--text)">${f.mtime}</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="file-actions">
+                  <button class="btn-link btn-open-folder" data-dir="${encodeURIComponent(f.dir)}">📁 打开目录</button>
+                  <button class="btn-link btn-reveal-file" data-path="${encodeURIComponent(f.path)}">🔍 访达定位</button>
+                </div>
+              </div>
+            `;
+          }).join('')}
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+// Event Delegation for XSS / Escaping Safety & Full-row Click Selection
+document.getElementById('groups-container').addEventListener('click', (e) => {
+  const openBtn = e.target.closest('.btn-open-folder');
+  if (openBtn) {
+    const dir = decodeURIComponent(openBtn.dataset.dir);
+    openFolder(dir);
+    return;
+  }
+  const revealBtn = e.target.closest('.btn-reveal-file');
+  if (revealBtn) {
+    const p = decodeURIComponent(revealBtn.dataset.path);
+    revealFile(p);
+    return;
+  }
+
+  // 整行任意空白/文字点击即可切换勾选
+  const fileItem = e.target.closest('.file-item');
+  if (fileItem && !e.target.matches('input[type="checkbox"]')) {
+    const chk = fileItem.querySelector('input[type="checkbox"]');
+    if (chk) {
+      if (chk.disabled) {
+        showToast('🛡️ 安全硬锁定：此文件为该组唯一原件，不可勾选删除');
+        return;
+      }
+      const newChecked = !chk.checked;
+      chk.checked = newChecked;
+      const p = decodeURIComponent(chk.dataset.path);
+      toggleSelect(p, newChecked);
+      renderPage(); // 实时更新禁用锁与底色
+    }
+  }
+});
+
+document.getElementById('groups-container').addEventListener('change', (e) => {
+  if (e.target.matches('input[type="checkbox"]')) {
+    const p = decodeURIComponent(e.target.dataset.path);
+    toggleSelect(p, e.target.checked);
+    renderPage(); // re-render to update disabled locks
+  }
+});
+
+function escapeHtml(str) {
+  return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+function toggleSelect(path, checked) {
+  if (checked) selectedPaths.add(path);
+  else selectedPaths.delete(path);
+  updateBottomBar();
+}
+
+function smartSelectCurrentPage() {
+  const start = (currentPage - 1) * PAGE_SIZE;
+  // If in showAll mode, limit to first 50 groups
+  const targetList = showAll ? filteredGroups.slice(0, PAGE_SIZE) : filteredGroups.slice(start, start + PAGE_SIZE);
+
+  let count = 0;
+  for (const g of targetList) {
+    // files[0] is the scored original, files[1:] are redundant copies
+    for (let i = 1; i < g.files.length; i++) {
+      selectedPaths.add(g.files[i].path);
+      count++;
+    }
+  }
+  renderPage();
+  updateBottomBar();
+  showToast(`已勾选当前页的 ${count} 个多余副本（原件均已保留）`);
+}
+
+function smartSelectAllPages() {
+  if (!confirm(`确定要勾选所有页面的全部 ${filteredGroups.length} 组重复文件吗？\n\n安全承诺：系统已按 1>2>3 规则为每组保留最优先原件，仅勾选多余副本。`)) {
+    return;
+  }
+  let count = 0;
+  selectedPaths.clear();
+  for (const g of filteredGroups) {
+    for (let i = 1; i < g.files.length; i++) {
+      selectedPaths.add(g.files[i].path);
+      count++;
+    }
+  }
+  renderPage();
+  updateBottomBar();
+  showToast(`已全局勾选 ${count} 个多余副本`);
+}
+
+function clearAllSelections() {
+  selectedPaths.clear();
+  renderPage();
+  updateBottomBar();
+  showToast('已取消所有勾选');
+}
+
+// ----------------------------------------------------
+// Targeted Batch Cleanup Modal & Execution
+// ----------------------------------------------------
+function openTargetedCleanupModal() {
+  const modal = document.getElementById('targeted-cleanup-modal');
+  if (!modal) return;
+
+  // Extract top frequent parent directories across all groups
+  const dirCounts = {};
+  for (const g of allGroups) {
+    for (const f of g.files) {
+      const p = f.path;
+      const lastSlash = p.lastIndexOf('/');
+      if (lastSlash > 0) {
+        const parentDir = p.substring(0, lastSlash);
+        const folderName = parentDir.substring(parentDir.lastIndexOf('/') + 1);
+        if (folderName) {
+          dirCounts[folderName] = (dirCounts[folderName] || 0) + 1;
+        }
+      }
+    }
+  }
+
+  // Sort by count desc
+  const sortedNames = Object.entries(dirCounts)
+    .sort((a,b) => b[1] - a[1])
+    .slice(0, 10)
+    .map(entry => entry[0]);
+
+  // Populate quick chips
+  const cleanChipsContainer = document.getElementById('quick-clean-chips');
+  const keepChipsContainer = document.getElementById('quick-keep-chips');
+
+  if (cleanChipsContainer) {
+    cleanChipsContainer.innerHTML = sortedNames.map(name => `
+      <span class="quick-chip" onclick="fillTargetCleanInput('${escapeHtml(name)}')" title="${escapeHtml(name)}">
+        📁 ${escapeHtml(name)}
+      </span>
+    `).join('');
+  }
+
+  if (keepChipsContainer) {
+    keepChipsContainer.innerHTML = sortedNames.map(name => `
+      <span class="quick-chip" onclick="fillTargetKeepInput('${escapeHtml(name)}')" title="${escapeHtml(name)}">
+        ⭐ ${escapeHtml(name)}
+      </span>
+    `).join('');
+  }
+
+  modal.classList.add('active');
+  const cleanInput = document.getElementById('target-clean-input');
+  if (cleanInput) cleanInput.focus();
+}
+
+function fillTargetCleanInput(val) {
+  const inp = document.getElementById('target-clean-input');
+  if (inp) inp.value = val;
+}
+
+function fillTargetKeepInput(val) {
+  const inp = document.getElementById('target-keep-input');
+  if (inp) inp.value = val;
+}
+
+function closeTargetedCleanupModal() {
+  const modal = document.getElementById('targeted-cleanup-modal');
+  if (modal) modal.classList.remove('active');
+}
+
+function handleModalOverlayClick(e) {
+  if (e.target && e.target.id === 'targeted-cleanup-modal') {
+    closeTargetedCleanupModal();
+  }
+}
+
+function executeTargetedMarking() {
+  const cleanKeyword = document.getElementById('target-clean-input') ? document.getElementById('target-clean-input').value.trim() : '';
+  const keepKeyword = document.getElementById('target-keep-input') ? document.getElementById('target-keep-input').value.trim() : '';
+
+  if (!cleanKeyword) {
+    alert('请填写或点击选择您想要优先清理的目录/关键词！');
+    return;
+  }
+
+  const cleanLower = cleanKeyword.toLowerCase();
+  const keepLower = keepKeyword ? keepKeyword.toLowerCase() : '';
+
+  const scopeEl = document.querySelector('input[name="target-scope"]:checked');
+  const scope = scopeEl ? scopeEl.value : 'page';
+
+  let targetGroupList = [];
+  if (scope === 'page') {
+    const start = (currentPage - 1) * PAGE_SIZE;
+    targetGroupList = showAll ? filteredGroups.slice(0, PAGE_SIZE) : filteredGroups.slice(start, start + PAGE_SIZE);
+  } else {
+    targetGroupList = allGroups;
+  }
+
+  let markedCount = 0;
+  let affectedGroups = 0;
+
+  // Process across selected groups
+  for (const g of targetGroupList) {
+    const files = g.files;
+    if (!files || files.length <= 1) continue;
+
+    // Identify candidate files matching cleanKeyword
+    const matchesClean = files.filter(f => f.path.toLowerCase().includes(cleanLower));
+    if (matchesClean.length === 0) continue;
+
+    // Zero-data-loss logic: determine which file in the group MUST be kept as original.
+    let keeperFile = null;
+
+    if (keepLower) {
+      // 1. If user specified keepKeyword, find the best file matching keepKeyword
+      const keepCandidates = files.filter(f => f.path.toLowerCase().includes(keepLower));
+      if (keepCandidates.length > 0) {
+        // Pick the top scored one among keep candidates
+        keeperFile = keepCandidates[0];
+      }
+    }
+
+    if (!keeperFile) {
+      // 2. If no keeper found yet, pick the highest-ranked file that does NOT match cleanKeyword
+      const nonCleanFiles = files.filter(f => !f.path.toLowerCase().includes(cleanLower));
+      if (nonCleanFiles.length > 0) {
+        keeperFile = nonCleanFiles[0];
+      } else {
+        // 3. Fallback: all files in group match cleanKeyword.
+        // HARD LOCK: must protect files[0] (the top-scored original by 1>2>3 rule)!
+        keeperFile = files[0];
+      }
+    }
+
+    // Now mark all cleanKeyword matching files, EXCEPT the keeperFile!
+    let groupMarked = false;
+    for (const f of matchesClean) {
+      if (f.path !== keeperFile.path) {
+        if (!selectedPaths.has(f.path)) {
+          selectedPaths.add(f.path);
+          markedCount++;
+          groupMarked = true;
+        }
+      }
+    }
+    if (groupMarked) affectedGroups++;
+  }
+
+  closeTargetedCleanupModal();
+  renderPage();
+  updateBottomBar();
+
+  if (markedCount > 0) {
+    const scopeLabel = scope === 'page' ? '当前页' : '全局';
+    showToast(`🎯 定向标记完成（${scopeLabel}）：已在 ${affectedGroups} 组中勾选「${cleanKeyword}」下的 ${markedCount} 个冗余副本！`);
+  } else {
+    showToast(`未找到符合条件的可清理副本（可能当前页不含该目录，或受原件硬锁定保护）`);
+  }
+}
+
+function updateBottomBar() {
+  document.getElementById('bar-selected-count').textContent = selectedPaths.size;
+  let totalBytes = 0;
+  for (const g of allGroups) {
+    for (const f of g.files) {
+      if (selectedPaths.has(f.path)) {
+        totalBytes += g.size_bytes;
+      }
+    }
+  }
+  document.getElementById('bar-selected-waste').textContent = formatBytes(totalBytes);
+}
+
+function formatBytes(b) {
+  if (b >= 1024 * 1024 * 1024) return (b / (1024**3)).toFixed(2) + ' GB';
+  if (b >= 1024 * 1024) return (b / (1024**2)).toFixed(1) + ' MB';
+  if (b >= 1024) return (b / 1024).toFixed(1) + ' KB';
+  return b + ' B';
+}
+
+function prevPage() {
+  if (currentPage > 1) {
+    currentPage--;
+    renderPage();
+    window.scrollTo({ top: document.getElementById('results-section').offsetTop - 80, behavior: 'smooth' });
+  }
+}
+
+function nextPage() {
+  const totalPages = Math.ceil(filteredGroups.length / PAGE_SIZE);
+  if (currentPage < totalPages) {
+    currentPage++;
+    renderPage();
+    window.scrollTo({ top: document.getElementById('results-section').offsetTop - 80, behavior: 'smooth' });
+  }
+}
+
+function toggleShowAll() {
+  showAll = !showAll;
+  document.getElementById('btn-show-all').textContent = showAll ? '分页模式' : '平铺全部';
+  renderPage();
+}
+
+async function openFolder(p) {
+  try {
+    await apiFetch('/api/open-folder', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ path: p })
+    });
+  } catch (e) {}
+}
+
+async function revealFile(p) {
+  try {
+    await apiFetch('/api/reveal-file', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ path: p })
+    });
+  } catch (e) {}
+}
+
+async function executeBatchTrash() {
+  if (selectedPaths.size === 0) {
+    alert('请先勾选需要移入废纸篓的冗余文件！');
+    return;
+  }
+
+  const count = selectedPaths.size;
+  if (!confirm(`确定将选中的 ${count} 个多余副本移入 macOS 废纸篓吗？\n\n安全保障：\n1. 每组均强制保留 1 份唯一原件，不丢失任何照片数据。\n2. 文件进入废纸篓，页面顶部可随时一键撤回。`)) {
+    return;
+  }
+
+  const paths = Array.from(selectedPaths);
+  showToast(`正在将 ${count} 个文件移入废纸篓...`);
+
+  try {
+    const res = await apiFetch('/api/trash-files', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ paths })
+    });
+    const json = await res.json();
+    if (json.status === 'ok') {
+      selectedPaths.clear();
+      if (json.errors && json.errors.length > 0) {
+        const errDetails = json.errors.map(e => `• ${e.path}: ${e.error}`).join('\n');
+        alert(`移入废纸篓完成：成功 ${json.trashed_count} 个，失败 ${json.errors.length} 个。\n\n部分失败原因：\n${errDetails}`);
+      } else {
+        showToast(`🎉 成功移入废纸篓 ${json.trashed_count} 个文件！`);
+      }
+      await loadScanData();
+    } else {
+      alert('安全拦截/删除失败: ' + (json.message || '未知错误'));
+    }
+  } catch (e) {
+    alert('请求失败: ' + e.message);
+  }
+}
+
+async function triggerRestoreLastBatch() {
+  if (!confirm('确定撤回上一批移入废纸篓的文件吗？\n（系统将自动将这批文件精准放回原本所在的文件夹）')) {
+    return;
+  }
+  showToast('正在从废纸篓撤回上一批文件...');
+  try {
+    const res = await apiFetch('/api/restore-trash', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' }
+    });
+    const json = await res.json();
+    if (json.status === 'ok') {
+      showToast(`🎉 已成功撤回 ${json.restored_count} 个文件！`);
+      await loadScanData();
+    } else {
+      alert('撤回失败: ' + (json.message || '未知错误'));
+    }
+  } catch (e) {
+    alert('请求失败: ' + e.message);
+  }
+}
+
+function showToast(msg) {
+  let t = document.getElementById('toast');
+  if (!t) {
+    t = document.createElement('div');
+    t.id = 'toast';
+    document.body.appendChild(t);
+  }
+  t.textContent = msg;
+  t.classList.add('on');
+  clearTimeout(t._timer);
+  t._timer = setTimeout(() => t.classList.remove('on'), 2500);
+}
+
+async function refreshPageData() {
+  showToast('正在刷新...');
+  await loadScanData();
+}
+
+// Initial loader
+window.addEventListener('DOMContentLoaded', async () => {
+  await initSession();
+  try {
+    const cfgRes = await fetch('/api/config');
+    const cfg = await cfgRes.json();
+    if (cfg.target_folders && cfg.target_folders.length > 0) {
+      targetFolders = cfg.target_folders;
+      renderFolderList();
+    }
+  } catch (e) {}
+  await loadScanData();
+});
+</script>
+
+</body>
+</html>

@@ -1,0 +1,31 @@
+# macOS system files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+
+# Python bytecode & cache
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Local User Configuration (Do NOT commit personal folders)
+config.json
+config.json.*
+config.json.tmp
+
+# Local User Data & Privacy Defense (NEVER commit user scan data or logs!)
+scan_result.json
+scan_result.json.*
+scan_result.json.tmp
+trash_manifest.json
+trash_manifest.json.*
+trash_manifest.json.tmp
+*.log
+*.tmp
+
+# Release artifacts
+dist/
+build/
+*.zip
